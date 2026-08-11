@@ -1,0 +1,10 @@
+build/
+.gradle/
+.idea/
+*.iml
+
+# Local config may hold an API key; only the .example template is tracked.
+*.properties
+!gradle/wrapper/gradle-wrapper.properties
+
+*.db

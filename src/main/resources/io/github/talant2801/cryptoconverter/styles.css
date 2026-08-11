@@ -1,0 +1,58 @@
+/* Dark theme. All styling lives here — no setStyle() calls in Java. */
+
+.root {
+    -fx-background-color: #14161a;
+    -fx-text-fill: #e6e8eb;
+    -fx-font-family: "Inter", "Segoe UI", "Ubuntu", sans-serif;
+    -fx-font-size: 13px;
+
+    -accent: #4c8dff;
+    -surface: #1c1f26;
+    -border: #2b303b;
+    -muted: #8b93a1;
+    -up: #34c77b;
+    -down: #f0616d;
+}
+
+.label {
+    -fx-text-fill: #e6e8eb;
+}
+
+.label-muted {
+    -fx-text-fill: -muted;
+}
+
+.change-up {
+    -fx-text-fill: -up;
+}
+
+.change-down {
+    -fx-text-fill: -down;
+}
+
+.text-field, .combo-box, .text-area {
+    -fx-background-color: -surface;
+    -fx-text-fill: #e6e8eb;
+    -fx-border-color: -border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.button {
+    -fx-background-color: -surface;
+    -fx-text-fill: #e6e8eb;
+    -fx-border-color: -border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-border-color: -accent;
+}
+
+.button-primary {
+    -fx-background-color: -accent;
+    -fx-text-fill: #0e1116;
+    -fx-font-weight: bold;
+}
