@@ -35,6 +35,8 @@ application {
 dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.15")
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")

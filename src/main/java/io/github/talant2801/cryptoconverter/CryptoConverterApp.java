@@ -1,20 +1,20 @@
 package io.github.talant2801.cryptoconverter;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** JavaFX application shell. Owns the stage and the {@link AppContext} lifecycle. */
 public class CryptoConverterApp extends Application {
 
-    private static final Logger LOG = Logger.getLogger(CryptoConverterApp.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(CryptoConverterApp.class);
 
     private static final int MIN_WIDTH = 900;
-    private static final int MIN_HEIGHT = 620;
+    private static final int MIN_HEIGHT = 650;
 
     private AppContext context;
 
@@ -45,7 +45,7 @@ public class CryptoConverterApp extends Application {
             try {
                 context.close();
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to shut down cleanly", e);
+                LOG.warn("Failed to shut down cleanly", e);
             }
         }
     }

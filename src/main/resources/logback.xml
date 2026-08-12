@@ -1,0 +1,17 @@
+<configuration>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- The HTTP layer logs every request at DEBUG; keep it off by default so a
+       normal run does not bury application messages. -->
+  <logger name="io.github.talant2801.cryptoconverter.client" level="INFO"/>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>
