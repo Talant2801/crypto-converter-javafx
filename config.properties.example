@@ -1,0 +1,51 @@
+# CryptoConverter — local configuration template.
+#
+# Copy this file to ~/.cryptoconverter/config.properties and edit it there.
+# Do NOT rename it into place inside the repository: .gitignore excludes
+# *.properties precisely so a real key cannot be committed by accident.
+#
+# Every key below is optional and every key below has a working default, so an
+# empty file — or no file at all — still starts the application. Environment
+# variables take precedence over this file; the variable name for each key is
+# shown beside it.
+
+# --- AI layer (optional) ------------------------------------------------------
+# Anthropic API key enabling natural-language conversion and market summaries.
+# Leave unset and the application runs normally with the AI features hidden.
+# Env: ANTHROPIC_API_KEY
+anthropic.api.key=sk-ant-replace-me
+
+# --- CoinGecko ----------------------------------------------------------------
+# Base URL of the CoinGecko v3 API. Override to point at a proxy or a stub.
+# Env: COINGECKO_BASE_URL
+coingecko.base.url=https://api.coingecko.com/api/v3
+
+# Per-request timeout in milliseconds.
+# Env: CRYPTOCONVERTER_HTTP_TIMEOUT_MS
+http.timeout.ms=10000
+
+# Retries after the initial attempt, applied to HTTP 429 and transport failures.
+# Env: CRYPTOCONVERTER_MAX_RETRIES
+http.max.retries=3
+
+# Un-jittered delay before the first retry, in milliseconds. Doubles per attempt.
+# Env: CRYPTOCONVERTER_RETRY_BASE_DELAY_MS
+http.retry.base.delay.ms=500
+
+# --- Caching ------------------------------------------------------------------
+# How long a fetched spot rate stays fresh, in seconds. The free tier allows
+# roughly 10-30 requests per minute, so lowering this invites rate limiting.
+# Env: CRYPTOCONVERTER_RATE_CACHE_TTL_SECONDS
+cache.rate.ttl.seconds=60
+
+# How long the top-100 coin list stays fresh, in seconds. Market-cap ordering
+# moves slowly, so this can be far longer than the rate TTL.
+# Env: CRYPTOCONVERTER_COIN_LIST_CACHE_TTL_SECONDS
+cache.coinlist.ttl.seconds=1800
+
+# --- Persistence --------------------------------------------------------------
+# SQLite file holding conversion history and favourites. Created on first run.
+# Must be an absolute path — the value is used verbatim, with no variable
+# expansion. Defaults to ~/.cryptoconverter/history.db when left unset.
+# Env: CRYPTOCONVERTER_DB_PATH
+#db.path=/home/you/.cryptoconverter/history.db
