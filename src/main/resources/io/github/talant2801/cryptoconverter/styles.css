@@ -56,3 +56,149 @@
     -fx-text-fill: #0e1116;
     -fx-font-weight: bold;
 }
+
+/* --- Layout ---------------------------------------------------------------
+   Spacing and padding live here rather than in the Java that builds the panes,
+   so the shape of the window can be adjusted without recompiling anything. */
+
+.app-header {
+    -fx-padding: 18 22 12 22;
+    -fx-spacing: 2;
+}
+
+.app-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.section-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 4 0;
+}
+
+.body-split {
+    -fx-background-color: transparent;
+    -fx-padding: 0 14 14 14;
+}
+
+.body-split > .split-pane-divider {
+    -fx-background-color: -border;
+    -fx-padding: 0 1 0 1;
+}
+
+.left-column {
+    -fx-spacing: 14;
+    -fx-padding: 8;
+}
+
+.converter-pane, .history-pane {
+    -fx-background-color: -surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -border;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+    -fx-spacing: 12;
+}
+
+.history-pane {
+    -fx-padding: 16 8 16 8;
+}
+
+.field-row {
+    -fx-spacing: 8;
+}
+
+.button-row {
+    -fx-spacing: 8;
+    -fx-padding: 8 8 0 0;
+}
+
+/* --- Converter ------------------------------------------------------------ */
+
+.amount-field {
+    -fx-font-size: 16px;
+    -fx-padding: 8 10 8 10;
+}
+
+.text-field, .combo-box, .button {
+    -fx-padding: 7 12 7 12;
+}
+
+.swap-button {
+    -fx-font-size: 15px;
+    -fx-min-width: 40;
+}
+
+.result-block {
+    -fx-spacing: 6;
+    -fx-padding: 6 0 0 0;
+}
+
+.result-amount {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.rate-line {
+    -fx-spacing: 10;
+}
+
+.change-up, .change-down {
+    -fx-font-weight: bold;
+}
+
+/* Amber rather than red: stale data is a caveat, not an error. */
+.stale-badge {
+    -fx-text-fill: #e0a83c;
+    -fx-font-size: 12px;
+}
+
+.inline-progress {
+    -fx-max-width: 16;
+    -fx-max-height: 16;
+    -fx-progress-color: -accent;
+}
+
+/* --- History table -------------------------------------------------------- */
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: -border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.table-view .column-header-background,
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: -surface;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -muted;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -border transparent;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: derive(-accent, -55%);
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #e6e8eb;
+    -fx-padding: 6 8 6 8;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -muted;
+}
+
+.button:disabled {
+    -fx-opacity: 0.45;
+}

@@ -2,8 +2,6 @@ package io.github.talant2801.cryptoconverter;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +23,7 @@ public class CryptoConverterApp extends Application {
 
     @Override
     public void start(Stage stage) {
-        BorderPane root = new BorderPane();
-        root.setCenter(new Label("CryptoConverter"));
-
-        Scene scene = new Scene(root, MIN_WIDTH, MIN_HEIGHT);
+        Scene scene = new Scene(context.createMainView(), MIN_WIDTH, MIN_HEIGHT);
         scene.getStylesheets().add(
                 CryptoConverterApp.class.getResource("styles.css").toExternalForm());
 
