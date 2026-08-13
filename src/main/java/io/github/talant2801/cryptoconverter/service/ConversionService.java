@@ -10,6 +10,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Turns an amount in one currency into an amount in another.
@@ -35,6 +37,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public final class ConversionService {
 
+    private static final Logger log = LoggerFactory.getLogger(ConversionService.class);
+
     /**
      * Working precision for the two divisions in play — inverting a rate and
      * crossing two of them.
@@ -50,10 +54,12 @@ public final class ConversionService {
     private static final BigDecimal PERCENT = BigDecimal.valueOf(100);
 
     private final RateService rates;
+    private final HistoryService history;
     private final Clock clock;
 
-    public ConversionService(RateService rates, Clock clock) {
+    public ConversionService(RateService rates, HistoryService history, Clock clock) {
         this.rates = Objects.requireNonNull(rates, "rates");
+        this.history = Objects.requireNonNull(history, "history");
         this.clock = Objects.requireNonNull(clock, "clock");
     }
 
@@ -73,14 +79,15 @@ public final class ConversionService {
         Objects.requireNonNull(amount, "amount");
         Objects.requireNonNull(targetCurrency, "targetCurrency");
 
-        String from = amount.currencyCode().trim();
-        String to = targetCurrency.trim();
-        if (to.isEmpty()) {
-            throw new IllegalArgumentException("targetCurrency must not be blank");
-        }
+        // Canonical from the first line: everything downstream — the cache key,
+        // the result on screen, the history row — then agrees on one spelling of
+        // each currency, whatever the caller typed.
+        String from = Fiat.canonical(amount.currencyCode());
+        String to = Fiat.canonical(targetCurrency);
+        Money source = new Money(amount.amount(), from);
 
-        if (from.equalsIgnoreCase(to)) {
-            return CompletableFuture.completedFuture(identity(amount, to));
+        if (from.equals(to)) {
+            return CompletableFuture.completedFuture(identity(source));
         }
 
         boolean fromFiat = Fiat.isFiat(from);
@@ -91,14 +98,37 @@ public final class ConversionService {
         }
 
         if (!fromFiat && toFiat) {
-            return rates.spotRate(from, to).thenApply(rate -> apply(amount, rate, to));
+            return rates.spotRate(from, to).thenApply(rate -> apply(source, rate, to));
         }
         if (fromFiat) {
             // The pair is always quoted coin-in-fiat, so the fiat leg runs the
             // same lookup and inverts the answer.
-            return rates.spotRate(to, from).thenApply(rate -> apply(amount, rate.inverted(), to));
+            return rates.spotRate(to, from).thenApply(rate -> apply(source, rate.inverted(), to));
         }
-        return crossThroughRouting(amount, from, to);
+        return crossThroughRouting(source, from, to);
+    }
+
+    /**
+     * Converts and writes the result to history.
+     *
+     * <p>Separate from {@link #convert} because the two have different triggers.
+     * The converter pane recalculates on every pause in typing, and saving each
+     * of those would bury a day's real conversions under half-typed amounts;
+     * history is written when the user commits to a conversion.
+     *
+     * <p>A failed write does not fail the conversion — the number on screen is
+     * still correct — so the result is returned regardless and the storage
+     * failure is logged.
+     */
+    public CompletableFuture<ConversionResult> convertAndSave(Money amount, String targetCurrency) {
+        return convert(amount, targetCurrency).thenCompose(result -> history.record(result)
+                .handle((saved, error) -> {
+                    if (error != null) {
+                        log.warn("Converted {} to {} but could not save it to history",
+                                result.from().currencyCode(), result.to().currencyCode(), error);
+                    }
+                    return result;
+                }));
     }
 
     /**
@@ -169,9 +199,9 @@ public final class ConversionService {
      * Converting a currency into itself, without asking the network what one
      * bitcoin is worth in bitcoin.
      */
-    private ConversionResult identity(Money amount, String currency) {
+    private ConversionResult identity(Money amount) {
         ExchangeRate rate = new ExchangeRate(
-                amount.currencyCode(), currency, BigDecimal.ONE, BigDecimal.ZERO, clock.instant());
+                amount.currencyCode(), amount.currencyCode(), BigDecimal.ONE, BigDecimal.ZERO, clock.instant());
         Money rounded = amount.rounded();
         return new ConversionResult(rounded, rounded, rate);
     }

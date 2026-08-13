@@ -1,6 +1,7 @@
 package io.github.talant2801.cryptoconverter.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +37,19 @@ class FiatTest {
         assertThat(Fiat.all())
                 .containsExactly(Fiat.USD, Fiat.EUR, Fiat.PLN, Fiat.GBP, Fiat.UAH)
                 .allSatisfy(fiat -> assertThat(fiat.displayName()).isNotBlank());
+    }
+
+    @Test
+    void canonicalisesFiatUpAndCoinIdsDown() {
+        assertThat(Fiat.canonical(" usd ")).isEqualTo("USD");
+        assertThat(Fiat.canonical("Usd")).isEqualTo("USD");
+        assertThat(Fiat.canonical(" BitCoin ")).isEqualTo("bitcoin");
+    }
+
+    @Test
+    void refusesToCanonicaliseABlankCode() {
+        assertThatThrownBy(() -> Fiat.canonical("   ")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Fiat.canonical(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test

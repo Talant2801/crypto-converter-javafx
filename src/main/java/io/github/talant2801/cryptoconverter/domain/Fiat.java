@@ -3,6 +3,7 @@ package io.github.talant2801.cryptoconverter.domain;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -66,5 +67,26 @@ public enum Fiat {
     /** True when {@code code} names a supported fiat rather than a coin. */
     public static boolean isFiat(String code) {
         return find(code).isPresent();
+    }
+
+    /**
+     * The one spelling of a currency code the application stores and compares:
+     * fiat upper case, coin ids lower case, no surrounding space.
+     *
+     * <p>Codes reach the application from a selector, a saved favourite, a
+     * history row and a natural-language query, and each of those has its own
+     * habits about casing. Funnelling them all through here is what keeps
+     * "USD", "usd" and " Usd " from becoming three different currencies in the
+     * history table.
+     *
+     * @throws IllegalArgumentException if the code is blank
+     */
+    public static String canonical(String code) {
+        Objects.requireNonNull(code, "code");
+        String trimmed = code.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("currency code must not be blank");
+        }
+        return find(trimmed).map(Fiat::code).orElseGet(() -> trimmed.toLowerCase(Locale.ROOT));
     }
 }

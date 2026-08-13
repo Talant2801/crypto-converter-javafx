@@ -27,9 +27,14 @@ class ConversionServiceTest {
     private static final Instant EARLIER = NOW.minusSeconds(90);
 
     private final TickingClock clock = new TickingClock(NOW);
+    private final InMemoryConversionHistoryDao historyDao = new InMemoryConversionHistoryDao();
+
+    /** Runs storage work on the calling thread, so assertions need no waiting. */
+    private final HistoryService history =
+            new HistoryService(historyDao, new InMemoryFavouritesDao(), Runnable::run, clock);
 
     private ConversionService serviceOver(StubRateService rates) {
-        return new ConversionService(rates, clock);
+        return new ConversionService(rates, history, clock);
     }
 
     @Nested
@@ -252,6 +257,19 @@ class ConversionServiceTest {
         }
 
         @Test
+        void reportsCurrencyCodesInOneCanonicalCasingWhateverWasTyped() {
+            // The history table and the favourites table are compared by these
+            // strings, so "usd" from one screen and "USD" from another must not
+            // become two currencies.
+            StubRateService rates = new StubRateService().quoting("bitcoin", "usd", "42000", NOW);
+
+            ConversionResult result = valueOf(serviceOver(rates).convert(Money.of("1", " BitCoin "), "usd"));
+
+            assertThat(result.from().currencyCode()).isEqualTo("bitcoin");
+            assertThat(result.to().currencyCode()).isEqualTo("USD");
+        }
+
+        @Test
         void refusesFiatToFiat() {
             StubRateService rates = new StubRateService();
 
@@ -287,6 +305,60 @@ class ConversionServiceTest {
 
             assertThat(failureOf(serviceOver(rates).convert(Money.of("1", "not-a-coin"), "usd")))
                     .isInstanceOf(ApiException.NotFound.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("saving to history")
+    class SavingToHistory {
+
+        private StubRateService market() {
+            return new StubRateService().quoting("bitcoin", "usd", "42000.50", "-1.25", NOW);
+        }
+
+        @Test
+        void aPreviewConversionWritesNothing() {
+            valueOf(serviceOver(market()).convert(Money.of("0.5", "bitcoin"), "usd"));
+
+            assertThat(historyDao.size()).isZero();
+        }
+
+        @Test
+        void aCommittedConversionWritesOneRow() {
+            ConversionResult result =
+                    valueOf(serviceOver(market()).convertAndSave(Money.of("0.5", "bitcoin"), "usd"));
+
+            assertThat(result.to().amount()).isEqualByComparingTo("21000.25");
+            assertThat(valueOf(history.recent())).singleElement().satisfies(saved -> {
+                assertThat(saved.id()).isNotNull();
+                assertThat(saved.fromCurrency()).isEqualTo("bitcoin");
+                assertThat(saved.toCurrency()).isEqualTo("USD");
+                assertThat(saved.fromAmount()).isEqualByComparingTo("0.5");
+                assertThat(saved.toAmount()).isEqualByComparingTo("21000.25");
+                assertThat(saved.rate()).isEqualByComparingTo("42000.50");
+                // Stamped with when the conversion happened, not when the price
+                // was fetched.
+                assertThat(saved.convertedAt()).isEqualTo(NOW);
+            });
+        }
+
+        @Test
+        void stillReturnsTheConversionWhenTheWriteFails() {
+            historyDao.failWith(new IllegalStateException("disk full"));
+
+            ConversionResult result =
+                    valueOf(serviceOver(market()).convertAndSave(Money.of("0.5", "bitcoin"), "usd"));
+
+            assertThat(result.to().amount()).isEqualByComparingTo("21000.25");
+        }
+
+        @Test
+        void doesNotWriteAConversionThatFailed() {
+            StubRateService rates = new StubRateService().failingWith(new ApiException.Transport("down"));
+
+            assertThat(failureOf(serviceOver(rates).convertAndSave(Money.of("1", "bitcoin"), "usd")))
+                    .isInstanceOf(ApiException.Transport.class);
+            assertThat(historyDao.size()).isZero();
         }
     }
 
