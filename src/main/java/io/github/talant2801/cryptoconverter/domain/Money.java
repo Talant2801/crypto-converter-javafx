@@ -35,6 +35,23 @@ public record Money(BigDecimal amount, String currencyCode) {
     }
 
     /**
+     * The scale a given currency is rounded to: two places for fiat, eight for
+     * everything else.
+     *
+     * <p>Lives here rather than at each call site so the conversion service, the
+     * history table and the labels in the UI cannot disagree about how many
+     * digits an amount has.
+     */
+    public static int scaleFor(String currencyCode) {
+        return Fiat.isFiat(currencyCode) ? FIAT_SCALE : CRYPTO_SCALE;
+    }
+
+    /** This amount rounded to the scale its own currency calls for. */
+    public Money rounded() {
+        return withScale(scaleFor(currencyCode));
+    }
+
+    /**
      * Returns this amount rounded to {@code scale} digits, HALF_UP.
      *
      * <p>The caller decides the scale because whether a currency is crypto or
