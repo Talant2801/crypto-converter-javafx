@@ -1,0 +1,49 @@
+# The project sits at the repository root, so the workflow needs no
+# working-directory default and no path filters — every push touches it.
+name: CryptoConverter CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Caches the Gradle distribution and dependency downloads between runs.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # The suite is fully offline — every HTTP client is stubbed and the only
+      # database is in memory — so no service containers or secrets are needed.
+      - name: Build, test and measure coverage
+        run: ./gradlew build --no-daemon
+
+      - name: Upload the JaCoCo coverage report
+        # Uploaded even on failure: a failing build is when the report is most
+        # worth reading.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: build/reports/jacoco/test/
+          if-no-files-found: warn
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/reports/tests/test/
+          if-no-files-found: warn
