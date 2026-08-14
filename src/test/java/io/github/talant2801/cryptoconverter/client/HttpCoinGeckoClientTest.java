@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.talant2801.cryptoconverter.domain.Coin;
 import io.github.talant2801.cryptoconverter.domain.ExchangeRate;
 import io.github.talant2801.cryptoconverter.domain.PricePoint;
+import io.github.talant2801.cryptoconverter.testing.StubHttpClient;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;

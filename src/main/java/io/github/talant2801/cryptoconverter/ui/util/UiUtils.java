@@ -3,6 +3,7 @@ package io.github.talant2801.cryptoconverter.ui.util;
 import io.github.talant2801.cryptoconverter.client.ApiException;
 import io.github.talant2801.cryptoconverter.domain.Money;
 import io.github.talant2801.cryptoconverter.persistence.PersistenceException;
+import io.github.talant2801.cryptoconverter.service.ai.AiException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.Instant;
@@ -122,6 +123,11 @@ public final class UiUtils {
                 case ApiException.Malformed ignored ->
                         "CoinGecko sent something this version cannot read.";
             };
+        }
+        if (cause instanceof AiException) {
+            // Authored by the AI layer for exactly this purpose, never echoed
+            // from a model or an HTTP body.
+            return cause.getMessage();
         }
         if (cause instanceof PersistenceException) {
             return "Could not read or write the local history database.";

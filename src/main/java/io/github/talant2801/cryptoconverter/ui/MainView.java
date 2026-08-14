@@ -1,6 +1,7 @@
 package io.github.talant2801.cryptoconverter.ui;
 
 import java.util.Objects;
+import java.util.Optional;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -26,20 +27,31 @@ public final class MainView extends BorderPane {
     private final ConverterPane converter;
     private final ChartPane chart;
     private final HistoryPane history;
+    private final Optional<AiPane> ai;
 
-    public MainView(ConverterPane converter, ChartPane chart, HistoryPane history) {
+    /**
+     * @param ai present only when an API key was configured; the window is laid
+     *     out without the pane entirely when it is absent
+     */
+    public MainView(ConverterPane converter, ChartPane chart, HistoryPane history, Optional<AiPane> ai) {
         this.converter = Objects.requireNonNull(converter, "converter");
         this.chart = Objects.requireNonNull(chart, "chart");
         this.history = Objects.requireNonNull(history, "history");
+        this.ai = Objects.requireNonNull(ai, "ai");
 
         getStyleClass().add("main-view");
         setTop(header());
         setCenter(body());
+        // Safe to subscribe after the panes were constructed: the converter
+        // loads its currency list asynchronously and announces the opening pair
+        // from a Platform.runLater, which cannot run until this constructor
+        // returns.
+        converter.setOnPairChanged(pair -> {
+            chart.show(pair);
+            ai.ifPresent(pane -> pane.show(pair));
+        });
         converter.setOnConversionSaved(history::refresh);
-        // Safe to subscribe after the converter was constructed: it loads its
-        // currency list asynchronously and announces the opening pair from a
-        // Platform.runLater, which cannot run until this constructor returns.
-        converter.setOnPairChanged(chart::show);
+        ai.ifPresent(pane -> pane.setOnConversionSaved(history::refresh));
     }
 
     private VBox left() {
@@ -49,8 +61,16 @@ public final class MainView extends BorderPane {
         return column;
     }
 
+    /** The right column: history, and the AI pane when there is one. */
+    private VBox right() {
+        VBox column = ai.map(pane -> new VBox(history, pane)).orElseGet(() -> new VBox(history));
+        VBox.setVgrow(history, Priority.ALWAYS);
+        column.getStyleClass().add("right-column");
+        return column;
+    }
+
     private Region body() {
-        SplitPane split = new SplitPane(left(), history);
+        SplitPane split = new SplitPane(left(), right());
         split.setOrientation(Orientation.HORIZONTAL);
         split.setDividerPositions(CONVERTER_SHARE);
         split.getStyleClass().add("body-split");

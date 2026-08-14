@@ -281,3 +281,43 @@
     -fx-max-height: 40;
     -fx-progress-color: -accent;
 }
+
+/* --- AI pane --------------------------------------------------------------
+   Present only when an API key is configured; the pane is never built
+   otherwise, so none of these rules apply to a disabled control. */
+
+.right-column {
+    -fx-spacing: 14;
+    -fx-padding: 8;
+}
+
+.ai-pane {
+    -fx-background-color: -surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -border;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+    -fx-spacing: 10;
+}
+
+.ai-answer {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e6e8eb;
+    -fx-font-size: 13px;
+}
+
+.ai-answer .content {
+    -fx-background-color: #14161a;
+    -fx-background-radius: 8;
+}
+
+.ai-answer:focused {
+    -fx-border-color: -border;
+}
+
+/* Muted, not alarming — it is a standing caveat rather than a warning. */
+.disclaimer {
+    -fx-text-fill: -muted;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}

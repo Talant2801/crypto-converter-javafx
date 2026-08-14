@@ -11,12 +11,16 @@ import io.github.talant2801.cryptoconverter.service.CachedRateService;
 import io.github.talant2801.cryptoconverter.service.ConversionService;
 import io.github.talant2801.cryptoconverter.service.HistoryService;
 import io.github.talant2801.cryptoconverter.service.RateService;
+import io.github.talant2801.cryptoconverter.service.ai.AiAssistant;
+import io.github.talant2801.cryptoconverter.service.ai.ClaudeAiAssistant;
+import io.github.talant2801.cryptoconverter.ui.AiPane;
 import io.github.talant2801.cryptoconverter.ui.ChartPane;
 import io.github.talant2801.cryptoconverter.ui.ConverterPane;
 import io.github.talant2801.cryptoconverter.ui.CurrencyCatalog;
 import io.github.talant2801.cryptoconverter.ui.HistoryPane;
 import io.github.talant2801.cryptoconverter.ui.MainView;
 import java.time.Clock;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +54,7 @@ public final class AppContext implements AutoCloseable {
     private final RateService rateService;
     private final ConversionService conversionService;
     private final HistoryService historyService;
+    private final AiAssistant aiAssistant;
     private final Clock clock;
 
     private AppContext(
@@ -59,6 +64,7 @@ public final class AppContext implements AutoCloseable {
             RateService rateService,
             ConversionService conversionService,
             HistoryService historyService,
+            AiAssistant aiAssistant,
             Clock clock) {
 
         this.config = config;
@@ -67,6 +73,7 @@ public final class AppContext implements AutoCloseable {
         this.rateService = rateService;
         this.conversionService = conversionService;
         this.historyService = historyService;
+        this.aiAssistant = aiAssistant;
         this.clock = clock;
     }
 
@@ -94,14 +101,24 @@ public final class AppContext implements AutoCloseable {
                 clock);
 
         ConversionService conversions = new ConversionService(rates, history, clock);
-        return new AppContext(config, executor, database, rates, conversions, history, clock);
+
+        // The one place that decides whether the AI layer exists. Everything
+        // downstream is handed an assistant and never asks where it came from.
+        AiAssistant assistant = ClaudeAiAssistant.create(config, executor);
+        log.info("AI features are {}", assistant.enabled() ? "enabled" : "disabled (no API key configured)");
+
+        return new AppContext(config, executor, database, rates, conversions, history, assistant, clock);
     }
 
     /** Builds the window's contents. Called on the JavaFX application thread. */
     public MainView createMainView() {
-        ConverterPane converter = new ConverterPane(
-                conversionService, new CurrencyCatalog(rateService), config.rateCacheTtl(), clock);
-        return new MainView(converter, new ChartPane(rateService), new HistoryPane(historyService));
+        CurrencyCatalog catalog = new CurrencyCatalog(rateService);
+        ConverterPane converter =
+                new ConverterPane(conversionService, catalog, config.rateCacheTtl(), clock);
+        Optional<AiPane> ai = AiPane.isAvailable(aiAssistant)
+                ? Optional.of(new AiPane(aiAssistant, conversionService, rateService, catalog))
+                : Optional.empty();
+        return new MainView(converter, new ChartPane(rateService), new HistoryPane(historyService), ai);
     }
 
     public AppConfig config() {
