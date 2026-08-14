@@ -11,6 +11,7 @@ import io.github.talant2801.cryptoconverter.service.CachedRateService;
 import io.github.talant2801.cryptoconverter.service.ConversionService;
 import io.github.talant2801.cryptoconverter.service.HistoryService;
 import io.github.talant2801.cryptoconverter.service.RateService;
+import io.github.talant2801.cryptoconverter.ui.ChartPane;
 import io.github.talant2801.cryptoconverter.ui.ConverterPane;
 import io.github.talant2801.cryptoconverter.ui.CurrencyCatalog;
 import io.github.talant2801.cryptoconverter.ui.HistoryPane;
@@ -100,7 +101,7 @@ public final class AppContext implements AutoCloseable {
     public MainView createMainView() {
         ConverterPane converter = new ConverterPane(
                 conversionService, new CurrencyCatalog(rateService), config.rateCacheTtl(), clock);
-        return new MainView(converter, new HistoryPane(historyService));
+        return new MainView(converter, new ChartPane(rateService), new HistoryPane(historyService));
     }
 
     public AppConfig config() {

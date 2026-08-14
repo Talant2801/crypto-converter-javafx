@@ -202,3 +202,82 @@
 .button:disabled {
     -fx-opacity: 0.45;
 }
+
+/* --- Price chart ---------------------------------------------------------- */
+
+.chart-pane {
+    -fx-background-color: -surface;
+    -fx-background-radius: 10;
+    -fx-border-color: -border;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+    -fx-spacing: 10;
+    -fx-min-height: 220;
+}
+
+.chart-header {
+    -fx-spacing: 10;
+}
+
+.range-toggle {
+    -fx-spacing: 4;
+}
+
+.toggle-button {
+    -fx-background-color: -surface;
+    -fx-text-fill: -muted;
+    -fx-border-color: -border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 4 12 4 12;
+    -fx-cursor: hand;
+}
+
+.toggle-button:selected {
+    -fx-background-color: -accent;
+    -fx-text-fill: #0e1116;
+    -fx-font-weight: bold;
+}
+
+.chart-body {
+    -fx-min-height: 160;
+}
+
+.chart-message {
+    -fx-spacing: 10;
+    -fx-alignment: center;
+    -fx-padding: 20;
+}
+
+.price-chart {
+    -fx-padding: 0;
+}
+
+.price-chart .chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.price-chart .chart-vertical-grid-lines,
+.price-chart .chart-horizontal-grid-lines {
+    -fx-stroke: -border;
+}
+
+.price-chart .axis {
+    -fx-tick-label-fill: -muted;
+    -fx-font-size: 11px;
+}
+
+.price-chart .axis-label {
+    -fx-text-fill: -muted;
+}
+
+.price-chart .chart-series-line {
+    -fx-stroke: -accent;
+    -fx-stroke-width: 2px;
+}
+
+.chart-progress {
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+    -fx-progress-color: -accent;
+}

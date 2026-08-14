@@ -5,6 +5,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
@@ -23,21 +24,27 @@ public final class MainView extends BorderPane {
     private static final double CONVERTER_SHARE = 0.56;
 
     private final ConverterPane converter;
+    private final ChartPane chart;
     private final HistoryPane history;
 
-    public MainView(ConverterPane converter, HistoryPane history) {
+    public MainView(ConverterPane converter, ChartPane chart, HistoryPane history) {
         this.converter = Objects.requireNonNull(converter, "converter");
+        this.chart = Objects.requireNonNull(chart, "chart");
         this.history = Objects.requireNonNull(history, "history");
 
         getStyleClass().add("main-view");
         setTop(header());
         setCenter(body());
         converter.setOnConversionSaved(history::refresh);
+        // Safe to subscribe after the converter was constructed: it loads its
+        // currency list asynchronously and announces the opening pair from a
+        // Platform.runLater, which cannot run until this constructor returns.
+        converter.setOnPairChanged(chart::show);
     }
 
-    /** The left column, which the chart is added to in its own phase. */
     private VBox left() {
-        VBox column = new VBox(converter);
+        VBox column = new VBox(converter, chart);
+        VBox.setVgrow(chart, Priority.ALWAYS);
         column.getStyleClass().add("left-column");
         return column;
     }
